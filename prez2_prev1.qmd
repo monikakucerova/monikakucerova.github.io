@@ -1,0 +1,467 @@
+---
+title: "Preschoolers' production of L2 vowels is affected by input quality: A longitudinal study"
+author: "M. Kučerová, Š. Šimáčková"
+format:
+  revealjs: 
+    slide-number: c
+    show-slide-number: all
+    title-slide: false
+    
+# title-slide-attributes:
+#   data-background-image: /figs/backg.png
+
+logo: figs/logos_psu_upol.png
+  
+css: styles.scss
+---
+```{r}
+library(knitr)
+```
+
+
+```{r}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(tidyverse)
+library(broom)
+library(lme4)
+library(readxl)
+library(ggeffects)
+library(emmeans)
+library(MuMIn)
+library(openxlsx)
+library(lmerTest)
+library(phonR)
+library(broom.mixed)
+library(here)
+
+script_dir <- here()
+setwd(script_dir)
+
+ppts <- read_excel('Preschoolers-production_data.xlsx')
+
+ppts <- mutate(ppts, Language = as.factor(Language),
+               Time = as.factor(Time),
+               Input = as.factor(Input),
+               Vowel = as.factor(Vowel))
+
+ppts <- dplyr::filter(ppts, phone %in% c('a', 'ae', 'ef', 'e', 'is', 'ic', 'vt', 'ii', 'i'))
+
+efl <- dplyr::filter(ppts, group == 'efl', Speaker %in% c('s1','s4','s5','s6','s7','s8','s9'))
+
+efl_En <- dplyr::filter(efl, Language == 'En')
+
+contrasts(efl_En$Input) <- contr.treatment(2)
+contrasts(efl_En$Time) <- contr.treatment(2)
+
+efl_En = efl_En %>% mutate(Time = relevel(Time, 'T2'))
+
+efl_En = efl_En %>% mutate(Vowel = relevel(Vowel, 3))
+
+heighteflEn.mdl <- lmer(F1e-F0e ~ Vowel * Time *Input + (1|Speaker) + (1|Word),
+                        data = efl_En,
+                        control = lmerControl(optimizer = 'bobyqa'))
+
+
+```
+
+## L2 input
+
+- learners initially use L1 representations to process L2 speech, representations of L2 words affected
+- quality of L2 input impacts creation of new representations and their updating (Llompart, 2021)
+- FLA: less L2 input, few L2 speakers, variable accents(?)
+- Varied native input affects vowel production (Bohn & Bundgaard-Nielsen, 2009; Bosch & Ramon-Casas, 2011)
+
+<div style="font-size: 0.6em; margin-top: 20px;">
+Bohn, O.-S., & Bundgaard-Nielsen, R. L. (2009). Second language speech learning with diverse inputs.
+
+Bosch, L., & Ramon-Casas, M. (2011). Variability in vowel production by bilingual speakers: Can input properties hinder the early stabilization of contrastive categories?
+
+Llompart, M. (2021). Phonetic categorization ability and vocabulary size contribute to the encoding of difficult second-language phonological contrasts into the lexicon.
+</div>
+
+<!-- # Non-native models (teachers, peers, parents) also affect FL sound processing and learning. By providing input with merged L2 contrasts, they may contribute to the reduced distinctiveness of learner’s L2 categories. Llompart and Reinish (2019) suggest that German EFL learners in their study accepted mispronunciations with L1 [ɛ] substituted for L2 [æ] as existing English words because they were used to hearing such mispronunciations from other German learners of English. In Weber et al. (2011) lexical decisions by Dutch speakers of English were sped up by an auditory prime that was Dutch-accented, e.g. Dutch-accented /ɛkt/ facilitated recognition of English act. -->
+
+## Assumptions
+
+1. Speakers store words as strings of phonemes, and as phonetically-detailed tokens in exemplar clouds (Nijveld et al., 2022)
+2. Memory of sounds: sounds of lexical exemplars pooled together across all the exemplars to form clouds
+3. Phonological categories emerge from sound exemplar clouds (Wilder, 2018)
+
+## Assumptions: exemplars and categories
+4. L2 learners use abstract categories AND exemplars (Nijveld et al., 2022; Pierrehumbert et al., 2002; Goldinger, 2007)
+5. Perceived L2 sounds are integrated in L1 clouds
+- Perceived L2 sound tokens are included in the exemplar clouds of L1 sound categories. – compatibility with equivalence classification in SLM/SLM-r 
+Language experience modulates categories:
+- shift of cloud centre: phonetic drift
+- creation of new cloud: category formation
+
+## Children's non-native language phonology
+- shared L1~L2 sound system
+- bidirectional influences (interference [], drift [])
+- one hour of articulatory feedback training []
+- This study: children exposed to L2 around age 3 -> less developed L1 phonology, weaker crosslinguistic influences, increased likelihood of new category formation. BUT no immersion, creating L2 categories may be delayed due to input
+- weaker compactness of L1 categories may lead to stronger drift [ , Kart]
+
+
+<div style="font-size: 0.6em; margin-top: 20px;">
+Lee and Iverson 2012
+
+Yang & Fox 2017
+
+Kartushina et al. 2016
+
+Lee et al., 1999
+</div>
+
+<!-- - 4-6 year old children exposed to once-weekly SSBE-like input from EFL teacher, and to Czech-accented L2 input from parents -->
+<!-- - data collection: newly-learnt words heard from teacher, earlier-learnt words heard parents -->
+<!-- - The effect of the teacher’s pronunciation on the spectral quality of vowels in newly-learnt words and on updating the pronunciation of earlier-learnt words? -->
+<!-- - our study: English /æ/-/ɛ/ contrast, difficult for Czechs (Šimáčková & Podlipský, 2018; Skarnitzl & Rumlová, 2019), qualitatively mapped onto [ɛ] -->
+<!--   - participants in Šimáčková & Podlispký (2018) produced the two vowels as different, but did not always produce the correct vowel in words -->
+  
+<!-- - our study: /i/-/ɪ/ contrast, maps onto /iː/-/i/ qualitatively -->
+
+## Input during experiment
+- Input flood targeting the /æ/-/ɛ/ and /i/-/ɪ/ contrasts
+- New words and Old words containing /i,ɪ,ɛ,æ,ʌ/
+- Class 45 min/week
+- Teacher's vowels consistently differentiated in quality
+
+## Research questions
+How does in-class input influence pre-literate FL learners’ production of L2 and L1 vowels?
+1. Are vowels better separated in New words recorded immediately after the lesson?
+2. Are /æ/-/ɛ/ (and /i/-/ɪ/) less well differentiated in the learners’ pronunciation of the Old words compared to the New words?
+3. Does pronunciation of /i,ɪ,ɛ,æ,ʌ/ in the Old words change in time, are the vowels better separated at T2?
+
+## Participants
+<div class="container">
+  <div class="text-box">
+::: {style="font-size:35px"}
+- 7 girls, 3;9 to 5;9
+- L1 Moravian Czech monolinguals (+ 1 Czech-Slovak bilingual)
+- AOL between 1;9 and 3;4 yrs; Low proficiency in English
+:::
+</div>
+
+## L2 exposure
+<div class="container">
+  <div class="text-box">
+::: {style="font-size:35px"}
+- school-provided audio-visual materials featuring SSBE speakers, media exposure
+- teacher: L1 Czech, L2 English with SSBE-like accent
+- L2 interactive input from parents, self-rated accent as moderately to strongly Czech accented
+:::
+</div>
+
+## Recorded material
+::: {.panel-tabset style="font-size:30px"}
+
+### Data collection
+- 8 recording sessions: 2 in Czech (10 weeks apart), 6 in English
+- picture naming task, repetition after the teacher when word not recalled
+- mono-/disyllabic words, initial stress
+  - 39 English: SSBE /i,ɪ,ɛ,æ,ʌ/ in stressed syllable
+  - 16 Czech /iː,i,e,a/
+  - CVC context
+  - fillers with back vowels (14 English, 8 Czech)
+- New words (n=20), Old words (n=19)
+
+<img src="figs/recording_timeline.png" class="image-right">
+
+### Input counts
+
+```{r}
+# count and show New, Old input words
+input_counts <- efl_En %>%
+  count(Input)
+
+print(input_counts)
+```
+
+### Old words
+
+```{r}
+old_words <- efl_En %>%
+  filter(Input == "Old") %>%
+  distinct(Word)
+
+print(old_words)
+
+```
+
+### New words
+
+```{r}
+new_words <- efl_En %>%
+  filter(Input == "New") %>%
+  distinct(Word)
+
+
+print(new_words)
+```
+
+:::
+
+## Acoustic measurements
+- Manual segmentation in Praat (Boersma & Weenink, 2022), criteria from Machač and Skarnitzl (2009) 
+- F0, F1, and F2 measurements from segments of 25–50 ms inside vowel intervals
+- F1, F2 extracted using Praat built-in LPC  with the Burg algorithm
+- Normalization: ERB (Glasberg and Moore 1990) in phonR (McCloy 2016)
+
+![](figs/acoustic_analysis.png)
+
+## Statistical analysis
+- Linear mixed effects models in R (R Core Team, 2024) using lme4 (Bates et al., 2015)
+- English: vowel height and retraction: 
+Fne-F0e ~ Vowel * Time * Input + (1|speaker) + (1|word)
+- Intercept: /æ/ in Input new, Time 2
+
+<!-- - Models estimated vowel height and retraction in English words, vowel height and retraction in Czech words -->
+- Fitted by REML using BOBYQA optimization (Powell, 2009)
+
+# Results
+## English vowels
+<style>
+.reveal ul, 
+.reveal ol {
+    <!-- font-size: 20px; -->
+    <!-- color: red; -->
+    <!-- list-style-type: square; -->
+}
+
+</style>
+
+::: {.panel-tabset}
+### Model formulas
+- F1e-F0e~Vowel\*Time*Input+(1|Participant)+(1|Word) 
+- F2e-F0e~Vowel\*Time*Input+(1|Participant)+(1|Word) 
+- Time (levels: T1, T2), Input (levels: New, Old), Vowel: factor predictor with levels /i,ɪ,ɛ,æ,ʌ/
+- 771 vowel tokens from 39 words spoken by 7 children were provided to each of two models
+<!-- For vowel height, we are mainly concerned with the contrasting pairs /ɛ/-/æ/ and /i/-/ɪ/. 
+-  At T2 in New words, the learners produced /ɛ/ as higher than /æ/* 
+ - no /æ-ʌ/ height difference
+ 
+ - For vowel retraction, the contrasts of interest were /æ/-/ʌ/ and /i/-/ɪ/. 
+ - New words at T2: no /æ-ɛ/ retraction difference
+ - significant /æ-ʌ/ difference (-1.276 ERB, p=0.003). 
+ - Relative to /æ/, no vowel showed sufficient evidence of a change in time, and neither did any vowel show sufficient evidence of being produced as different in retraction in Old as compared to New words 
+ 
+ - highly variable /æ/ with [ɛ]-like tokens-->
+ 
+### Model summary
+
+```{r}
+
+summary(heighteflEn.mdl)
+
+```
+:::
+
+# Input effects: low vowels
+# 
+
+![L2 /ɛ, æ, ʌ/ produced by the learners in Old words. Ellipses include 68% of tokens.](figs/1_low_old.png)
+
+#
+
+![L2 /ɛ, æ, ʌ/ produced by the learners in New words. Ellipses include 68% of tokens.](figs/2_low_new.png)
+
+# Time effect: high vowels
+#
+
+<!-- - no change in height for /ɛ, æ, ʌ/ between T1 and T2  -->
+<!-- - /i/ was lower at T1 (1.253 ERB, p=0.048) than at T2. The overlap between /i/ and /ɪ/ is still large -->
+<!-- - The three-way interactions did not reach significance in either the height or retraction model -->
+
+![L2 /i, ɪ/ produced by the learners at Time 1 (blue) and Time 2 (pink) across all words. Ellipses include 68% of tokens.](figs/3_hi_time.png)
+
+# Czech Vowels
+- Vowel height: F1e-F0e~Vowel\*Time+(1|Participant)+(1|Word) 
+- Vowel retraction: F2e-F0e~Vowel*Time+(1|Participant)+(1|Word) 
+- 4 vowels, 19 word types, 201 tokens total
+
+#
+- /i/ raised (-2.638 ERB, p=0.002) 
+- /iː/ raised (-1.897 ERB, p=0.021)
+
+- /e/ retracted (-0.918 ERB, p=0.016)
+- /a/ retracted (-0.238 ERB, p=0.620), but the relative distance between /e/ and /a/ remained similar
+
+![Vowels produced in Czech words at T1 (green) and T2 (red). Ellipses use 68% CIs.](figs/cz-vowels.png)
+
+## Phonetic drift
+- L1 /iː, i/ came closer to L2 /i/ in height, 
+- the distance between L1 /iː, i/ and L2 /ɪ/ increased 
+- the distance between L1 /e/ and L2 /æ/ decreased
+- the distance between L1 /e/ and L2 /ɛ/ in New words increased
+- the distance between L1 /a/ and L2 /æ/ increased
+- L1 /a/ and L2 /ʌ/ decreased their relative distance
+
+![English (blue) and Czech (red) high vowels produced by learners at T1 (left) and T2 (right).](figs/both-hi1.png)
+![English (blue) and Czech (red) high vowels produced by learners at T1 (left) and T2 (right).](figs/both-hi2.png)
+![Left: English /ɛ, æ, ʌ/ in New words at T1 and Czech /e/ at T1; Right: English /ɛ, æ, ʌ/ in New words at T2 and Czech /e/ at T2.](figs/low_T1.png)
+
+![Left: English /ɛ, æ, ʌ/ in New words at T1 and Czech /e/ at T1; Right: English /ɛ, æ, ʌ/ in New words at T2 and Czech /e/ at T2.](figs/low_T2.png)
+
+## Discussion
+How does in-class input influence pre-literate FL learners' production of L2 and L1 non-back vowels? How does their vowel production from the first seven weeks differ from last seven weeks of the experiment?
+
+- lessons: input from SSBE-like speaker
+- at home: practice of earlier-learnt words with parents assumed to have an /ɛ-æ/ merger
+
+- the /i/-/ɪ/ contrast absent from the learners’ L1 dialect
+
+# Input effects
+- /ɛ/-/æ/ contrast posed a challenge 
+- recent input did influence production
+raising of /ɛ/ in newly-learnt words
+- the difficult vowel pair exhibited a greater separation in words learnt in class compared to older words encountered at home 
+- children demonstrated an emerging ability to differentiate /ɛ/-/æ/, but overlap was still present, as /æ/ was highly variable
+- lexical misrepresentation (some /æ/ tokens [ɛ]-like, also in Šimáčková & Podlipský (2018)
+  - even in New words (exemplar vs. abstract representations, heterogeneous input: free variants vs. distinct categories)
+- reflects the teacher’s pronunciation, children able to attend to the phonetic detail in the input as well as to refer to the recently perceived input in their own production
+
+<!-- forms heard in class and at home (e.g. [hæt] and [het/hɛt] respectively) and understanding that the forms have the same meaning (hat), they might have considered them to be free variants, at least initially -->
+
+Old words
+- No evidence of phonological updating in Old words: the improved spectral separation of /ɛ/-/æ/ in the newly-learnt in-class words (caused by raising of /ɛ/), did not generalise to the previously-learnt words
+
+No input effects for /i, ɪ, æ, ʌ/
+- pronunciation of words with /i, ɪ, æ, ʌ/ from in-class and home input did not differ
+- in-class input did not cause change the learners’ production of /æ/ and /ʌ/: /æ/ and /ʌ/: consistent separation in all words throughout the experiment, some overlap
+- spectral distinction in teacher’s input not substantial enough?
+
+- vowels share the same phonetic space, interact. Experience leads to change.
+- Prior to the L2 input flood of (prevailingly) front vowel words a young learner’s L1 [e]’s, L2 [æ]’s, and L2 [ɛ]’s shared an exemplar cloud, i.e. they functioned as a merged L1-L2 category. The recent [ɛ]-tokens in the New words separated into a new cloud, the new /ɛ/ beginning to split away from the merged category. Not to fall in with the new /ɛ/, tokens of L1 /e/ started to lower, assimilating to /æ/, which had no further space to lower, so it stayed merged with L1 /e/ and L2 /ɛ/ from Old words.
+
+# Time effects: L2
+- no change found for L2 /ɪ,ɛ,æ,ʌ/
+- /i/-raising not sufficient to be reflected in an improved /i/-/ɪ/ contrast (highly variable /ɪ/ at T2)
+
+# Time effects: L1
+- we tested for phonetic drift in L1 vowels after a 10-week period of vowel-focused classroom input
+- chosen L2 reference vowel --> asimilatory/dissimilatory drift
+- /e/ retracted at T2 compared to T1
+  - started overlapping more with L2 /æ/, 
+  - dissimilated from L2 /ɛ/. 
+- L1/e/-L2/ɛ/ dissimilation achieved only in the New words
+- L1 /a/ retracted with L1 /e/: relative distance stable
+- L1 /a/ dissimilated from L2 /æ/ and assimilated to L2 /ʌ/
+- L1 vowels /i/ and /iː/ raised to similar height as L2 /i/, dissimilated from the centre of the L2 /ɪ/ category (large overlap)
+
+# Limitations
+- parental input not controlled
+- children were worse at remembering New words than Old words
+- perception test
+- amount of exposure necessary for updating representations of Old words?
+- no tracking of New word development
+
+# Summary
+- in-class input influences pre-literate FL learners’ production of L1 and L2 vowels
+- Recent input (received during a lesson) that targeted selected vowels affected the learners’ L2 output (elicited immediately after the lesson); lexically constrained effect
+- New words: /ɛ/ and /æ/ were separated in quality, due to the raising of /ɛ/. 
+- Old words: /ɛ, æ/ not differentiated
+- No differences due to input type for /i,ɪ,æ,ʌ/. 
+- no evidence for a cumulative effect of classroom exposure on the production of Old words was found
+- phonetic drift: learners’ vowels undergo continual changes throughout L2 exposure, even in time constrained FL classroom exposure
+
+# Thank you for your attention
+<a href="https://osf.io/39nsz/?view_only=56f29a8ca6d441589d8f4e489e833fca" target="_blank">
+  <img src="figs/osf.png" style="height: 300px;">
+</a>
+
+# References
+
+
+## Coefficient tables
+<!-- https://stackoverflow.com/questions/28207912/change-font-sizes-with-style-sheets-for-rstudio-presentation -->
+<style>
+
+.reveal .slides section .slideContent h2 {
+   font-size: 40px;
+   font-weight: bold;
+   color: green;
+}
+
+</style>
+
+Table 1. Coefficient table for vowel height estimates of the target English vowels produced by the learners at T1 and T2. The reference level for Input is New, for Time it is T2. The intercept is /æ/ in Input New at T2. 
+
+| term            | estimate |   df   | p-value |
+|-----------------|----------|--------|---------|
+| (Intercept)     | 8.179    | 25.347 | 0.000   |
+| vowel ɛ         | -1.659   | 65.256 | 0.000   |
+| vowel i         | -6.818   | 70.574 | 0.000   |
+| vowel ɪ         | -5.834   | 63.219 | 0.000   |
+| vowel ʌ         | -0.605   | 77.535 | 0.175   |
+| time T1         | 0.189    | 97.819 | 0.672   |
+| input 2         | -0.677   | 56.714 | 0.071   |
+| vowel ɛ:time T1 | 0.072    | 64.554 | 0.910   |
+| vowel i:time T1 | 1.253    | 93.200 | 0.048   |
+| vowel ɪ:time T1 | 0.395    | 82.578 | 0.528   |
+| vowel ʌ:time T1 | 0.653    | 87.780 | 0.306   |
+| vowel ɛ:input 2 | 1.335    | 50.628 | 0.011   |
+| vowel i:input 2 | 0.542    | 45.823 | 0.378   |
+| vowel ɪ:input 2 | 0.682    | 37.396 | 0.261   |
+| vowel ʌ:input 2 | 0.451    | 41.919 | 0.455   |
+| time T1:input 2 | -0.012   | 140.287| 0.982   |
+
+# 
+Table 2. Coefficient table for vowel retraction estimates of the target English vowels produced by the learners at T1 and T2. The reference level for Input is New, for Time it is T2. The intercept is /æ/ in Input: New at T2. 
+
+| term             | estimate |   df   | p-value |
+|------------------|----------|--------|---------|
+| (Intercept)      | 14.582   | 38.384 | 0.000   |
+| Vowel ɛ          | 0.469    | 30.090 | 0.247   |
+| Vowel i          | 3.001    | 32.524 | 0.000   |
+| Vowel ɪ          | 1.807    | 29.140 | 0.000   |
+| Vowel ʌ          | -1.276   | 34.544 | 0.003   |
+| Time T1          | 0.274    | 55.628 | 0.498   |
+| Input 2          | 0.098    | 30.010 | 0.776   |
+| Vowel ɛ:Time T1  | 0.383    | 37.114 | 0.516   |
+| Vowel i:Time T1  | -0.235   | 54.856 | 0.679   |
+| Vowel ɪ:Time T1  | 0.182    | 47.835 | 0.750   |
+| Vowel ʌ:Time T1  | -0.257   | 49.753 | 0.657   |
+| Vowel ɛ:Input 2  | 0.355    | 26.982 | 0.459   |
+| Vowel i:Input 2  | -0.642   | 23.020 | 0.278   |
+| Vowel ɪ:Input 2  | -0.497   | 19.711 | 0.398   |
+| Vowel ʌ:Input 2  | -0.799   | 21.977 | 0.176   |
+| Time T1:Input 2  | -0.010   | 79.403 | 0.982   |
+
+#
+Table 3. Coefficient table for Czech vowel height estimates. The intercept is /e/ at T1.
+
+| term             | estimate |   df   | p-value |
+|------------------|----------|--------|---------|
+| (Intercept)      | 6.963    | 16.796 | 0.000   |
+| vowel a          | 1.712    | 9.959  | 0.004   |
+| vowel i          | -3.993   | 10.973 | 0.000   |
+| vowel iː         | -4.865   | 11.432 | 0.000   |
+| time T2          | 1.045    | 12.413 | 0.053   |
+| vowel a:time T2  | -1.169   | 9.853  | 0.120   |
+| vowel i:time T2  | -2.638   | 11.162 | 0.002   |
+| vowel iː:time T2 | -1.897   | 11.479 | 0.021   |
+
+Table 4. Coefficient table for vowel retraction estimates in Czech words. The intercept is /e/ at T1.
+
+| term             | estimate |   df   | p-value |
+|------------------|----------|--------|---------|
+| (Intercept)      | 15.615   | 16.235 | 0.000   |
+| vowel a          | -1.642   | 10.550 | 0.000   |
+| vowel i          | 1.079    | 11.478 | 0.005   |
+| vowel iː         | 2.401    | 12.044 | 0.000   |
+| time T2          | -0.918   | 13.941 | 0.016   |
+| vowel a:time T2  | -0.238   | 10.550 | 0.620   |
+| vowel i:time T2  | 0.448    | 11.906 | 0.352   |
+| vowel iː:time T2 | 0.869    | 12.581 | 0.099   |
+
+
+<!-- ======================================================= -->
+# Teacher's production
+<!-- ============================================================  https://osf.io/39nsz/?view_only=56f29a8ca6d441589d8f4e489e833fca -->
+# 
+![Teacher’s production (blue) compared to learners’ production (pink) of English vowels. Ellipses show 68% of tokens.](figs/teacher-learners-T1-old.png)
+
+![Teacher’s production (blue) compared to learners’ production (pink) of English vowels. Ellipses show 68% of tokens.](figs/teacher-learners-T2-new.png)

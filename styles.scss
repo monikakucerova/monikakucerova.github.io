@@ -1,0 +1,33 @@
+/*-- scss:defaults --*/
+
+/*-- scss:rules --*/
+.slide-background-content {
+    background-image: url("figs/backg.png");
+    background-size: contain; /* Adjusts the image to fit inside the container without being cropped */
+    background-position: center; /* Centers the background image */
+    background-repeat: no-repeat; /* Ensures the image doesn’t repeat */
+  }
+
+  .title-slide {
+    text-align: center;
+  }
+  
+  .container {
+    display: flex;
+    justify-content: space-between; /* Ensure space between the text and image */
+    align-items: flex-start; /* Align items to the top of the container */
+  }
+  
+  .text-box {
+    background-color: rgba(255, 255, 255, 0.8); /* Optional: Background color for the text box */
+    padding: 15px;
+    border-radius: 10px;
+    width: 55%; /* Adjust the width of the text box */
+    margin-right: 20px; /* Optional: Add space between the text box and the image */
+  }
+  
+  .image-right {
+    width: 400px; /* Set a fixed width for the image */
+    height: auto; /* Maintain the aspect ratio */
+    flex-shrink: 0; /* Prevent the image from shrinking */
+  }
