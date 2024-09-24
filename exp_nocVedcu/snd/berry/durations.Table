@@ -1,0 +1,59 @@
+File type = "ooTextFile"
+Object class = "Table"
+
+numberOfColumns = 2 
+columnHeaders []: 
+    columnHeaders [1]:
+        label = "sound" 
+    columnHeaders [2]:
+        label = "duration" 
+rows: size = 7 
+rows [1]:
+    numberOfColumns = 2 
+    cells []: 
+        cells [1]:
+            string = "barry2_s4" 
+        cells [2]:
+            string = "0.5812018140589569" 
+rows [2]:
+    numberOfColumns = 2 
+    cells []: 
+        cells [1]:
+            string = "barry_s3" 
+        cells [2]:
+            string = "0.3918140589569161" 
+rows [3]:
+    numberOfColumns = 2 
+    cells []: 
+        cells [1]:
+            string = "barry_s4" 
+        cells [2]:
+            string = "0.5432199546485261" 
+rows [4]:
+    numberOfColumns = 2 
+    cells []: 
+        cells [1]:
+            string = "berryHen_s3" 
+        cells [2]:
+            string = "0.5322448979591837" 
+rows [5]:
+    numberOfColumns = 2 
+    cells []: 
+        cells [1]:
+            string = "berryHen_s4" 
+        cells [2]:
+            string = "0.9275510204081633" 
+rows [6]:
+    numberOfColumns = 2 
+    cells []: 
+        cells [1]:
+            string = "berryIce_s3" 
+        cells [2]:
+            string = "0.5322448979591837" 
+rows [7]:
+    numberOfColumns = 2 
+    cells []: 
+        cells [1]:
+            string = "berryIce_s4" 
+        cells [2]:
+            string = "0.47768707482993195" 
