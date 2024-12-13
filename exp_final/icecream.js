@@ -53,6 +53,8 @@ function isEven(number) {
 // FULLSCREEN TRIAL
 var fullscreen_trial = {
   type: jsPsychFullscreen,
+  message: "<p>Tato obrazovka se maximalizuje po kliknuti na tlacitko nize.</p>",
+  button_label: "Maximalizovat",
   fullscreen_mode: true,
   post_trial_gap: 500
 };
@@ -1512,3 +1514,4 @@ function recordReactionTime() {
 // var initial_timeline = [arrow];
 var initial_timeline = [password_trial, fullscreen_trial, get_id]; //password_trial, 
 jsPsych.run(initial_timeline);
+
