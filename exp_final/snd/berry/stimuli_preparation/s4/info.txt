@@ -1,0 +1,6 @@
+saving files
+barry2_s4	 with duration 	0.581	 warped by	1.088 to match target duration of	0.632
+barry_s4	 with duration 	0.543	 warped by	1.164 to match target duration of	0.632
+berryHen2_s4	 with duration 	0.478	 warped by	1.324 to match target duration of	0.632
+berryHen_s4	 with duration 	0.928	 warped by	0.682 to match target duration of	0.632
+DONE!

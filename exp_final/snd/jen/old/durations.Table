@@ -1,0 +1,24 @@
+File type = "ooTextFile"
+Object class = "Table"
+
+numberOfColumns = 2 
+columnHeaders []: 
+    columnHeaders [1]:
+        label = "sound" 
+    columnHeaders [2]:
+        label = "duration" 
+rows: size = 2 
+rows [1]:
+    numberOfColumns = 2 
+    cells []: 
+        cells [1]:
+            string = "jan_s4" 
+        cells [2]:
+            string = "0.6584807256235827" 
+rows [2]:
+    numberOfColumns = 2 
+    cells []: 
+        cells [1]:
+            string = "jen2_s4" 
+        cells [2]:
+            string = "0.5269160997732426" 

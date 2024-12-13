@@ -1,0 +1,21 @@
+berryHen2_s1 puv. formanty (5000, 5):
+F1 652.021715922636
+F2 1961.3967491237613
+(F3 2778.4175640745225, pekne trackovana)
+
+barry_s1 (5500, 6; beru F1 jako F2, F2 jako F3)
+F1 989.6470618698778
+F2 1702.6968452111116
+(F3 2637.9094535277873, pekne trackovana)
+
+syntetizuju s 5, 5500.
+
+
+; zkousim formGrid s 5, 5000
+; removed I formant points with jumps. removed f5 altogether.
+; changing frequency steps to "52" so that I get 51 stimuli
+; putting formpoints into the first fourth and second fourth
+1) 0.054 + ((0.203-0.054)/4) = 0.09125
+2) 0.054 + ((0.203-0.054)/4)*3 = 0.16575
+
+celk trvani 0.203-0.054

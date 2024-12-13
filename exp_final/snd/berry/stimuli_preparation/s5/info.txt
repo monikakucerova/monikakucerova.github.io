@@ -1,0 +1,6 @@
+saving files
+barry2_s5	 with duration 	0.682	 warped by	0.849 to match target duration of	0.579
+barry_s5	 with duration 	0.545	 warped by	1.062 to match target duration of	0.579
+berryIce2_s5	 with duration 	0.459	 warped by	1.262 to match target duration of	0.579
+berryIce_s5	 with duration 	0.631	 warped by	0.918 to match target duration of	0.579
+DONE!
