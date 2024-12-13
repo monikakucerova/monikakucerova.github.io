@@ -35,7 +35,7 @@ var jsPsych = initJsPsych({
     var filename = `${participant_id}_${participant_seq.progress}_${formattedStartTime}.csv`; // results file will be saved with id and progress (videos watched) in the filename
 
     // Save the data as CSV
-    jsPsych.data.get().localSave('csv', filename);
+    // jsPsych.data.get().localSave('csv', filename);
 
     // Display the results in a textarea
     var allData = jsPsych.data.get().csv();
@@ -219,18 +219,24 @@ var get_id = {
       get_id,
       arrow,
       ...interleaved_trials,
-      //...sound_selection_trials,
+      ...sound_selection_trials,
     ];
 
     // datasaving trial for sending to OSF
     const save_data = {
       type: jsPsychPipe,
       action: "save",
-      experiment_id: "xWwrvLoBIDyL",
+      experiment_id: "e6ErUkYYyvp1",
       filename: () => {
+        var experimentEndTime = new Date().toISOString();
+    jsPsych.data.addProperties({
+      experiment_start_time: experimentStartTime,
+      experiment_end_time: experimentEndTime
+    });
+
         var participant_id = jsPsych.data.get().values()[0].participant_id; // Ensure this is accessible
         var participant_seq = seq.find(s => s.id === participant_id); // Ensure seq is accessible
-        return `${participant_id}_${participant_seq.progress}.csv`;
+        return `${participant_id}_${participant_seq.progress}_${formattedStartTime}.csv`;
       },
       data_string: () => jsPsych.data.get().csv()
     };
