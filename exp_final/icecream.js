@@ -51,7 +51,7 @@ function createPreloadTrial(resources) {
     images: resources.filter(r => r.endsWith('.png') || r.endsWith('.jpg')),
     audio: resources.filter(r => r.endsWith('.wav') || r.endsWith('.mp3')),
     video: resources.filter(r => r.endsWith('.mp4') || r.endsWith('.webm')),
-    message: 'Loading resources, please wait...',
+    message: 'Nacitaji se data',
     max_load_time: 30000 // Set a timeout for preloading
   };
 }
