@@ -45,6 +45,17 @@ var jsPsych = initJsPsych({
   }
 });
 
+function createPreloadTrial(resources) {
+  return {
+    type: jsPsychPreload,
+    images: resources.filter(r => r.endsWith('.png') || r.endsWith('.jpg')),
+    audio: resources.filter(r => r.endsWith('.wav') || r.endsWith('.mp3')),
+    video: resources.filter(r => r.endsWith('.mp4') || r.endsWith('.webm')),
+    message: 'Loading resources, please wait...',
+    max_load_time: 30000 // Set a timeout for preloading
+  };
+}
+
 // helper function: is number even?
 function isEven(number) {
   return number % 2 === 0;
@@ -122,7 +133,6 @@ var get_id = {
     // get seq, cond, progress, first_speaker and second_speaker based on input ID
     var participant_seq = seq.find(s => s.id === participant_id);
     var cond = participant_seq ? participant_seq.cond : null;
-    //var progress = participant_seq ? participant_seq.progress : null;
     var progress = jsPsych.data.get().values()[0].progress; 
     var first_speaker = participant_seq ? participant_seq.first_speaker : null;
     var second_speaker = participant_seq ? participant_seq.second_speaker : null;
@@ -137,7 +147,6 @@ var get_id = {
     var seq_str = participant_seq.seq;
     var seq_parts = seq_str.split('_');
     var extracted_seq = seq_parts[progress];
-
     
     console.log("cond:", cond);
     console.log("progress:", progress);
@@ -165,6 +174,7 @@ var get_id = {
     // only include those observation images that are marked with the "vid" value that agrees with the current seq index
     // filter out empty img values, those would throw errors
     var matching_obs = vid_obs.filter(v => v.vid === extracted_seq && v.img !== "");
+    var obs_images = matching_obs.map(v => "img/" + v.img + ".png");
 
     // make a trial for each image
     var obs_trials = [];
@@ -172,6 +182,7 @@ var get_id = {
       var trials = obs_trial_screen(v.img, first_speaker, second_speaker);
       obs_trials.push(...trials);
     });
+    
 
     // repeat trial for each word four times
     var replicated_obs_trials = [];
@@ -183,7 +194,9 @@ var get_id = {
 
     // filter vid_obs, use all rows with the given vid
     var matching_vid_obs = vid_obs.filter(v => v.vid === extracted_seq);
+    var video_files = matching_vid_obs.map(v => "vid/" + extracted_seq + "_" + cond + "_" + first_speaker + "_" + second_speaker + ".mp4");
 
+    
     // make vid trials in the vid_obs-matching time intervals
     var vid_trials = matching_vid_obs.map(v => video_obs_trial(v.tStart, v.tEnd, extracted_seq, cond, first_speaker, second_speaker));
 
@@ -209,6 +222,35 @@ var get_id = {
 
     // filter soundSel: use only those pairs that are in the current vid
     var relevant_sound_sels = soundSel.filter(sel => sel.vid === extracted_seq);
+    
+    var audio_files = relevant_sound_sels.map(sel => {
+      // Split the "pair" into its components
+      var pairParts = sel.pair.split('-'); // E.g., "bedLion-bat" -> ["bedLion", "bat"]
+      var word1 = pairParts[0];
+      var word2 = pairParts[1];
+    
+      // Ensure both words and speakers are defined
+      if (!word1 || !word2 || !first_speaker || !second_speaker) {
+        console.error("Invalid data for soundSel:", sel, first_speaker, second_speaker);
+        return null; // Skip invalid entries
+      }
+    
+      // Construct audio file paths for each word and speaker
+      return [
+        "snd/words/" + word1 + "_" + first_speaker + ".wav",
+        "snd/words/" + word1 + "2_" + first_speaker + ".wav",
+        "snd/words/" + word1 + "_" + second_speaker + ".wav",
+        "snd/words/" + word1 + "2_" + second_speaker + ".wav",
+        "snd/words/" + word2 + "_" + first_speaker + ".wav",
+        "snd/words/" + word2 + "2_" + first_speaker + ".wav",
+        "snd/words/" + word2 + "_" + second_speaker + ".wav",
+        "snd/words/" + word2 + "2_" + second_speaker + ".wav"
+      ];
+    }).flat().filter(path => path !== null);
+    
+    var all_resources = [...new Set([...obs_images, ...video_files, ...audio_files])];
+
+    var preload_trial = createPreloadTrial(all_resources);
 
     // Organize the soundSel trials
     var organizedSoundSel = organizeSoundSelTrials(relevant_sound_sels, extracted_seq, seq_parts, progress);
@@ -219,6 +261,7 @@ var get_id = {
     // construct initial timeline
     var full_timeline = [
       get_id,
+      preload_trial,
       arrow,
       ...interleaved_trials,
       ...sound_selection_trials,
@@ -237,8 +280,8 @@ var get_id = {
     });
 
         var participant_id = jsPsych.data.get().values()[0].participant_id; // Ensure this is accessible
-        var participant_seq = seq.find(s => s.id === participant_id); // Ensure seq is accessible
-        return `${participant_id}_${participant_seq.progress}_${formattedStartTime}.csv`;
+        var progress = jsPsych.data.get().values()[0].progress; 
+        return `${participant_id}_${progress}_${formattedStartTime}.csv`;
       },
       data_string: () => jsPsych.data.get().csv()
     };
@@ -328,6 +371,8 @@ var containerStyle = {
 // MAKE IMAGE OBSERVATION TRIAL                                                      //
 // MAKE IMAGE OBSERVATION TRIAL                                                      //
 ///////////////////////////////////////////////////////////////////////////////////////
+
+
 function obs_trial_screen(word, first_speaker, second_speaker) {
   // console.log("obs_trial_screen called with word:", word);
   
@@ -1514,4 +1559,3 @@ function recordReactionTime() {
 // var initial_timeline = [arrow];
 var initial_timeline = [password_trial, fullscreen_trial, get_id]; //password_trial, 
 jsPsych.run(initial_timeline);
-
