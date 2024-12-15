@@ -81,19 +81,19 @@ var password_trial = {
     var password = responses.pass; // Access the first question's response on the page
 
     // assign progress based on password
-    if (password == "prvniVideo") {
+    if (password == "prvniVideo" || password == "rodic1") { // Password for child ppt and for parent check
       jsPsych.data.addProperties({ progress: 0 });
       console.log('Progress set to 0');
 
-    } else if (password == "druheVideo") {
+    } else if (password == "druheVideo" || password == "rodic2") {
       jsPsych.data.addProperties({ progress: 1 });
       console.log('Progress set to 1');
 
-    } else if (password == "tretiVideo") {
+    } else if (password == "tretiVideo" || password == "rodic3") {
       jsPsych.data.addProperties({ progress: 2 });
       console.log('Progress set to 2');
 
-    } else if (password == "posledniTrenovaci") {
+    } else if (password == "posledniTrenovaci") { // Prog 3 and 4 are done in the lab, no parent check
       jsPsych.data.addProperties({ progress: 3 });
       console.log('Progress set to 3');
 
@@ -133,6 +133,25 @@ var get_id = {
       device: navigator.userAgent // add info on device to csv
     });
 
+     // Data saving trial for sending to OSF
+     const save_data = {
+      type: jsPsychPipe,
+      action: "save",
+      experiment_id: "e6ErUkYYyvp1",
+      filename: () => {
+        var experimentEndTime = new Date().toISOString();
+        jsPsych.data.addProperties({
+        experiment_start_time: experimentStartTime,
+        experiment_end_time: experimentEndTime
+    });
+
+        var participant_id = jsPsych.data.get().values()[0].participant_id; 
+        var progress = jsPsych.data.get().values()[0].progress; 
+        return `${participant_id}_${progress}_${formattedStartTime}.csv`; // Filename: ID_progress_startTIme
+      },
+      data_string: () => jsPsych.data.get().csv()
+    };
+
     // get seq, cond, first_speaker and second_speaker based on input ID
     var participant_seq = seq.find(s => s.id === participant_id);
     var cond = participant_seq ? participant_seq.cond : null;
@@ -146,7 +165,7 @@ var get_id = {
         second_speaker = participant_seq.first_speaker
       }
     
-    // get vid name
+    // get vid name as extracted_seq
     var seq_str = participant_seq.seq;
     var seq_parts = seq_str.split('_');
     var extracted_seq = seq_parts[progress];
@@ -156,14 +175,13 @@ var get_id = {
     console.log("progress:", progress);
     console.log("first_speaker:", first_speaker);
     console.log("vid:", extracted_seq);
-    
 
     // reassign cond to "test" if seq is mouse
     if (extracted_seq == "mouse") {
       cond = "test";
     }
 
-    // assign first_speaker and second_speaker based on ID
+    // For test, assign first_speaker and second_speaker based on ID
       // even ID = s5 first, odd = s6 first
     if (extracted_seq == "mouse" ) {
       if (isEven(participant_id)) {
@@ -175,12 +193,12 @@ var get_id = {
       }
     }
 
-    // only include those observation images that are marked with the "vid" value that agrees with the current seq index
+    // Img obs: only include those observation images that are marked with the "vid" value that agrees with the current seq index
     // filter out empty img values, those would throw errors
     var matching_obs = vid_obs.filter(v => v.vid === extracted_seq && v.img !== "");
     var obs_images = matching_obs.map(v => "img/" + v.img + ".png");
 
-    // make a trial for each image
+    // Make a trial for each image
     var obs_trials = [];
     matching_obs.forEach(v => {
       var trials = obs_trial_screen(v.img, first_speaker, second_speaker);
@@ -188,7 +206,7 @@ var get_id = {
     });
     
 
-    // repeat trial for each word four times
+    // Repeat trial for each image four times
     var replicated_obs_trials = [];
     obs_trials.forEach(trial => {
       for (var i = 0; i < 4; i++) {
@@ -196,15 +214,16 @@ var get_id = {
       }
     });
 
-    // filter vid_obs, use all rows with the given vid
+    // Filter vid_obs, use all rows with the given vid
     var matching_vid_obs = vid_obs.filter(v => v.vid === extracted_seq);
+
+    // Find relevant video files for preloading
     var video_files = matching_vid_obs.map(v => "vid/" + extracted_seq + "_" + cond + "_" + first_speaker + "_" + second_speaker + ".mp4");
 
-    
-    // make vid trials in the vid_obs-matching time intervals
+    // Make vid trials in the vid_obs-matching time intervals
     var vid_trials = matching_vid_obs.map(v => video_obs_trial(v.tStart, v.tEnd, extracted_seq, cond, first_speaker, second_speaker));
 
-    // build interleaved trials
+    // Build interleaved trials
     var interleaved_trials = [];
     var obs_index = 0;
     var vid_index = 0;
@@ -215,7 +234,7 @@ var get_id = {
         vid_index++;
       } 
       
-      // push four imgs between vid intervals
+      // Push four imgs between vid intervals
       if (obs_index < obs_trials.length) {
         for (var i = 0; i < 4; i++) {
           interleaved_trials.push(obs_trials[obs_index]);
@@ -224,12 +243,13 @@ var get_id = {
       }
     }
 
-    // filter soundSel: use only those pairs that are in the current vid
+    // Filter soundSel: use only those pairs that are in the current vid
     var relevant_sound_sels = soundSel.filter(sel => sel.vid === extracted_seq);
     
+    // Fidn relevant audio files for preloading
     var audio_files = relevant_sound_sels.map(sel => {
       // Split the "pair" into its components
-      var pairParts = sel.pair.split('-'); // E.g., "bedLion-bat" -> ["bedLion", "bat"]
+      var pairParts = sel.pair.split('-'); // E.g. "bedLion-bat" -> ["bedLion", "bat"]
       var word1 = pairParts[0];
       var word2 = pairParts[1];
     
@@ -252,11 +272,13 @@ var get_id = {
       ];
     }).flat().filter(path => path !== null);
     
+    // Combine imgs, audio, vids for preloading
     var all_resources = [...new Set([...obs_images, ...video_files, ...audio_files])];
 
+    // Create preloading trial with
     var preload_trial = createPreloadTrial(all_resources);
 
-    // Organize the soundSel trials
+    // Organize soundSel trials
     var organizedSoundSel = organizeSoundSelTrials(relevant_sound_sels, extracted_seq, seq_parts, progress);
 
     // filter soundsel according to progress
@@ -267,32 +289,17 @@ var get_id = {
       get_id,
       preload_trial,
       arrow,
-      //...interleaved_trials,
+      ...interleaved_trials,
       ...sound_selection_trials,
     ];
 
-    // datasaving trial for sending to OSF
-    const save_data = {
-      type: jsPsychPipe,
-      action: "save",
-      experiment_id: "e6ErUkYYyvp1",
-      filename: () => {
-        var experimentEndTime = new Date().toISOString();
-    jsPsych.data.addProperties({
-      experiment_start_time: experimentStartTime,
-      experiment_end_time: experimentEndTime
-    });
-
-        var participant_id = jsPsych.data.get().values()[0].participant_id; // Ensure this is accessible
-        var progress = jsPsych.data.get().values()[0].progress; 
-        return `${participant_id}_${progress}_${formattedStartTime}.csv`;
-      },
-      data_string: () => jsPsych.data.get().csv()
-    };
-
     var speaker = null;
 
-    // boundary trials happen after the fourth and fifth vid
+    // Set up boundary trials
+    // Set up boundary trials
+    // Set up boundary trials
+
+    // Boundary trials happen after the fourth and fifth vid
     if (progress == 3 || progress == 4) {
       
       // boundary trials always use berry sounds
