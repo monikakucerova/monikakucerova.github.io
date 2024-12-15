@@ -302,33 +302,34 @@ var get_id = {
     // Boundary trials happen after the fourth and fifth vid
     if (progress == 3 || progress == 4) {
       
-      // boundary trials always use berry sounds
+      // Boundary trials always use berry sounds
       var sound_category = "berry";
 
-      // cond uni1, always get s4 as boundary 
+      // Cond uni1 always get s4 as boundary 
       if ((first_speaker === 's3' && second_speaker === 's4') || (first_speaker === 's4' && second_speaker === 's3')) {
         speaker = 's4';
 
-      // cond uni2 get s1 as boundary if their ID is odd, s2 if even  
-    } else if (cond == 'uni2') {
-      if (isEven(participant_id)) {
-        speaker = "s2"
-      } else if (!isEven(participant_id)) {
-        speaker = "s1"
+        // Cond uni2 get s1 as boundary if their ID is odd, s2 if even  
+      } else if (cond == 'uni2') {
+        if (isEven(participant_id)) {
+          speaker = "s2"
+        } else if (!isEven(participant_id)) {
+          speaker = "s1"
+        }
+
+        // Bi children get the two category one that they heard in previous videos
+      } else if (first_speaker === 's1' || second_speaker === 's1') {
+          speaker = 's1';
+      } else if (first_speaker === 's2' || second_speaker === 's2') {
+          speaker = 's2';
+      } else { // At test, everyone gets s5 as boundary
+        speaker = 's5'
       }
-      // bi children get the two category one that they heard in previous videos
-    } else if (first_speaker === 's1' || second_speaker === 's1') {
-        speaker = 's1';
-    } else if (first_speaker === 's2' || second_speaker === 's2') {
-        speaker = 's2';
-    } else {
-      speaker = 's5'
-    }
       
-    // shuffle array of 2*2 unique endpoints for randomized presentation at boundary familiarization
+    // Shuffle array of 2*2 unique endpoints for randomized presentation at boundary familiarization
     var familiarisation_sounds = jsPsych.randomization.shuffle([51, 1, 51, 1]);
 
-    // create boundary familiarisation timeline by mapping the four sounds onto the createBoundaryFam function
+    // Create boundary familiarisation timeline by mapping the four sounds onto the createBoundaryFam function
     var familiarisation_timeline = familiarisation_sounds.map(function(sound) {
       return createBoundaryFam(sound, cond, first_speaker, second_speaker, sound_category, speaker);
     });
@@ -351,16 +352,7 @@ var get_id = {
   }
 };
 
-// hooray trial to signal end of experiment when aborted
-var hooray_trial = {
-  type: jsPsychImageButtonResponse,
-  stimulus: 'img/hooray.png', 
-  choices: ['Show results'],
-  button_html: '<button class="jspsych-btn">%choice%</button>',
-  prompt: '<p></p>',
-};
-
-// arrow trial after ID to allow child to start experiment
+// Arrow trial after ID to allow child to start experiment
 var arrow = {
   type: jsPsychHtmlButtonResponse,
   stimulus: "\u2003", // whitespace
@@ -383,13 +375,12 @@ var containerStyle = {
 // MAKE IMAGE OBSERVATION TRIAL                                                      //
 ///////////////////////////////////////////////////////////////////////////////////////
 
-
 function obs_trial_screen(word, first_speaker, second_speaker) {
   // console.log("obs_trial_screen called with word:", word);
   
   var img_filename = "img/" + word + ".png";
 
-  // four images get shown, the word is produced twice by each speaker
+  // Four images get shown, the word is produced twice by each speaker
   var audio_files = [
     "snd/words/" + word + "_" + first_speaker + ".wav",
     "snd/words/" + word + "2_" + first_speaker + ".wav",
@@ -397,12 +388,12 @@ function obs_trial_screen(word, first_speaker, second_speaker) {
     "snd/words/" + word + "2_" + second_speaker + ".wav"
   ];
 
-  // shuffle audio files for random order
+  // Shuffle audio files for random order
   var shuffled_audio_files = jsPsych.randomization.shuffle(audio_files);
 
   var trials = [];
 
-  // define corner positions using vw and vh units for responsive positioning of imgs
+  // Define corner positions using vw and vh units for responsive positioning of imgs
   var corner_positions = [
     { top: '2vh', left: '2vw' },     // upper-left corner
     { top: '2vh', right: '2vw' },    // upper-right corner
@@ -410,7 +401,7 @@ function obs_trial_screen(word, first_speaker, second_speaker) {
     { bottom: '2vh', right: '2vw' }  // lower-right corner
   ];
 
-  // shuffle positions so that images show up at random corner of screen
+  // Shuffle positions so that images show up at random corner of screen
   var shuffled_positions = jsPsych.randomization.shuffle(corner_positions);
 
   // construct four observation img trials
@@ -459,7 +450,7 @@ function obs_trial_screen(word, first_speaker, second_speaker) {
             if (promptImg) {
               promptImg.style.display = 'none';
             }
-          }, 1000); // set tap img timeout to 1 s
+          }, 1000); // Set tap img timeout to 1 s
         }
       },
       on_finish: function(data) {
@@ -756,6 +747,7 @@ function make_sound_selection_trial(soundSel, first_speaker, second_speaker, pro
       // Assign reversed sounds for "heard = 50" case for barry
       acc1 = pair[0] === "barry" ? "s6" : "s5"; // Gen for Barry, Tamsin for BerryIce
       acc2 = pair[1] === "barry" ? "s6" : "s5"; // Gen for Barry, Tamsin for BerryIce
+
     } else if (pair.includes("brad")) {
       target_base_name = "brad";
 
