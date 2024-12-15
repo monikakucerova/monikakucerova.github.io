@@ -1,139 +1,142 @@
-var custom_css = `
-<style>
-  .no-border-button {
-    border: none;
-    background: none;
-    padding: 0px;
-    }
-    .highlighted {
-      background-color: yellow;
-  }
-</style>
-`;
+var experimentStartTime = new Date().toISOString(); // find out the UTC time of experiment start
+var formattedStartTime = experimentStartTime.replace(/:/g, '-').replace(/\..+/, ''); // replace colons and remove miliseconds
 
-document.head.insertAdjacentHTML('beforeend', custom_css);
+// initialize jspsych
+// initialize jspsych
+// initialize jspsych
 
-var experimentStartTime = new Date().toISOString();
-var formattedStartTime = experimentStartTime.replace(/:/g, '-').replace(/\..+/, ''); // Replace colons and remove milliseconds
-
-
-// Initialize jsPsych
 var jsPsych = initJsPsych({
   on_finish: function() {
 
-    var experimentEndTime = new Date().toISOString();
-    jsPsych.data.addProperties({
+    var experimentEndTime = new Date().toISOString(); // get experiment UTC end time
+    jsPsych.data.addProperties({ // add start and end time to results csv
       experiment_start_time: experimentStartTime,
       experiment_end_time: experimentEndTime
     });
 
-    // Get participant_id and seq
     var participant_id = jsPsych.data.get().values()[0].participant_id; // get ppt id
     var participant_seq = seq.find(s => s.id === participant_id); // get id's seq
     
-    // Create the filename
-    var filename = `${participant_id}_${participant_seq.progress}_${formattedStartTime}.csv`; // results file will be saved with id and progress (videos watched) in the filename
+    /* For saving csv locally
+    // Define filename ad ID_seq_startTime
+    var filename = `${participant_id}_${participant_seq.progress}_${formattedStartTime}.csv`;
 
     // Save the data as CSV
-    // jsPsych.data.get().localSave('csv', filename);
+    jsPsych.data.get().localSave('csv', filename);
 
     // Display the results in a textarea
     var allData = jsPsych.data.get().csv();
     var csvDisplay = '<textarea rows="20" cols="80">' + allData + '</textarea>';
     jsPsych.endExperiment(csvDisplay);
+    */
+
+    var customMessage = '<p style="font-size: 20px; text-align: center;">Hotovo! Moc Vam dekujeme za dokonceni teto casti experimentu. Muzete zavrit tohle okno.</p>';
+    jsPsych.endExperiment(customMessage);
 
   }
 });
 
+// Preloading for function-generated trials
+// Only necessary resources get preloaded
 function createPreloadTrial(resources) {
   return {
     type: jsPsychPreload,
     images: resources.filter(r => r.endsWith('.png') || r.endsWith('.jpg')),
     audio: resources.filter(r => r.endsWith('.wav') || r.endsWith('.mp3')),
     video: resources.filter(r => r.endsWith('.mp4') || r.endsWith('.webm')),
-    message: 'Nacitaji se data',
-    max_load_time: 30000 // Set a timeout for preloading
+    message: 'Nacitaji se data', // Doesnt accept non-ASCII by default
+    max_load_time: null, // Wait indefinitely for all resources to load (or produce and error)
+    continue_after_error: true // If a resource fails to load, start the experiment anyway. Write error into trial data
   };
 }
 
-// helper function: is number even?
-function isEven(number) {
+function isEven(number) { // helper function: is number even?
   return number % 2 === 0;
 }
 
-// FULLSCREEN TRIAL
+// Fullscreen trial
 var fullscreen_trial = {
   type: jsPsychFullscreen,
-  message: "<p>Tato obrazovka se maximalizuje po kliknuti na tlacitko nize.</p>",
-  button_label: "Maximalizovat",
+  message: '<p>Tato obrazovka se maximalizuje po kliknuti na tlacitko nize.</p>',
+  button_label: 'Maximalizovat',
   fullscreen_mode: true,
   post_trial_gap: 500
 };
 
+// 'Password' trial to get progress (index of video to be played)
 var password_trial = {
   type: jsPsychSurvey,
+  button_label_finish: 'OK',
   pages: [[
     {
       type: 'text',
-      prompt: "Zadejte heslo:", 
-      name: "pass" ,
+      prompt: 'Zadejte heslo:', 
+      name: 'pass',
       required: true}
   ]],
+
   on_finish: function(data) {
-    console.log(data.response); // Log to confirm the structure
+    console.log(data.response);
     var responses = data.response; // Access the first page's response
     var password = responses.pass; // Access the first question's response on the page
+
+    // assign progress based on password
     if (password == "prvniVideo") {
       jsPsych.data.addProperties({ progress: 0 });
       console.log('Progress set to 0');
+
     } else if (password == "druheVideo") {
       jsPsych.data.addProperties({ progress: 1 });
       console.log('Progress set to 1');
+
     } else if (password == "tretiVideo") {
       jsPsych.data.addProperties({ progress: 2 });
       console.log('Progress set to 2');
+
     } else if (password == "posledniTrenovaci") {
       jsPsych.data.addProperties({ progress: 3 });
       console.log('Progress set to 3');
+
     } else if (password == "testovaci") {
       jsPsych.data.addProperties({ progress: 4 });
       console.log('Progress set to 4');
     }
     
-    else {
+    else { // Give message when wrong password input
       alert("Nespravne heslo. Zkuste to znovu.");
       jsPsych.endExperiment("Heslo nebylo spravne. Obnovte stranku a zkuste zadat heslo znovu."); // Ends the experiment if the password is wrong
     }
   }
 };
 
-// GET ID SURVEY TRIAL
+// ID Survey trial
 var get_id = {
   type: jsPsychSurvey,
   post_trial_gap: 500, // reqired, when not positive, exp doesnt work
-  
+  button_label_finish: 'OK',
   pages: [
     [
       {
         type: 'text',
-        prompt: "Zadejte ID a pote kliknete na tlacitko `Finish`. Sve ID naleznete v instrukcich z e-mailu.",
+        prompt: 'Zadejte ID a pote kliknete na tlacitko OK. Sve ID naleznete v instrukcich z e-mailu.',
         name: 'ID',
         required: true,
       }
     ]
   ],
+
   on_finish: function(data) {
     var responses = data.response;
-    var participant_id = parseInt(responses.ID, 10); // parse response as int to get ID
+    var participant_id = parseInt(responses.ID, 10); // Parse response as integer (base 10) to get ID
     jsPsych.data.addProperties({
-      participant_id: participant_id,
-      device: navigator.userAgent
+      participant_id: participant_id, // add participant id to results csv
+      device: navigator.userAgent // add info on device to csv
     });
 
-    // get seq, cond, progress, first_speaker and second_speaker based on input ID
+    // get seq, cond, first_speaker and second_speaker based on input ID
     var participant_seq = seq.find(s => s.id === participant_id);
     var cond = participant_seq ? participant_seq.cond : null;
-    var progress = jsPsych.data.get().values()[0].progress; 
+    var progress = jsPsych.data.get().values()[0].progress; // gets progress from data
     var first_speaker = participant_seq ? participant_seq.first_speaker : null;
     var second_speaker = participant_seq ? participant_seq.second_speaker : null;
     
@@ -143,12 +146,13 @@ var get_id = {
         second_speaker = participant_seq.first_speaker
       }
     
-    // get progress index from sequence
+    // get vid name
     var seq_str = participant_seq.seq;
     var seq_parts = seq_str.split('_');
     var extracted_seq = seq_parts[progress];
     
     console.log("cond:", cond);
+    console.log("seq:", participant_seq);
     console.log("progress:", progress);
     console.log("first_speaker:", first_speaker);
     console.log("vid:", extracted_seq);
@@ -263,7 +267,7 @@ var get_id = {
       get_id,
       preload_trial,
       arrow,
-      ...interleaved_trials,
+      //...interleaved_trials,
       ...sound_selection_trials,
     ];
 
@@ -685,14 +689,14 @@ function make_sound_selection_trial(soundSel, first_speaker, second_speaker, pro
 
   // if this is the last training video and the condition is bi,
   // find out the 2cat speaker and 1cat speaker
-  if (progress === 3 && cond === "bi") {
+  if (cond === "bi") {
     if (first_speaker === "s1" || first_speaker === "s2") {
       var speaker_2cat = first_speaker
     } else if (first_speaker === "s3" || first_speaker === "s4"){
       var speaker_1cat = first_speaker
     }
   }
-  if (progress === 3 && cond === "bi") {
+  if (cond === "bi") {
     if (second_speaker === "s1" || second_speaker === "s2") {
       var speaker_2cat = second_speaker
     } else if (second_speaker === "s3" || second_speaker === "s4"){
@@ -702,18 +706,19 @@ function make_sound_selection_trial(soundSel, first_speaker, second_speaker, pro
 
   // if heard is empty, last two training videos and conds is bi and the pair is mp
   // decide randomly (50%) between these two options of accent combos
-  if (soundSel.heard === "" && progress > 1 && cond === "bi" && soundSel.status("mp")) {
+  if (soundSel.heard == "random" && progress > 1 && cond === "bi" && soundSel.status == "mp") {
+    console.log("MP status, empty heard, prog > 1, cond bi. Looking to assign speaker_2cat or speaker_1cat")
 
       Math.random() < 0.5 ? 
       // Assign sounds for "heard = 100" case for barry
       [
-      acc1 = pair[0] === "barry" ? speaker_2cat : speaker_1cat, // Tamsin for Barry, Gen for BerryIce
-      acc2 = pair[1] === "barry" ? speaker_2cat : speaker_1cat, // Gen for BerryIce, Tamsin for Barry
+      acc1 = (pair[0] === "barry" || pair[0] === "jan" || pair[0] === "gavin" || pair[0] === "bedOak" || pair[0] === "bedLion") ? speaker_2cat : speaker_1cat, // Tamsin for Barry, Gen for BerryIce
+      acc2 = (pair[1] === "barry" || pair[1] === "jan" || pair[1] === "gavin" || pair[1] === "bedOak" || pair[1] === "bedLion") ? speaker_2cat : speaker_1cat, // Gen for BerryIce, Tamsin for Barry
       ]
       :
       [
-      acc1 = pair[0] === "barry" ? speaker_1cat : speaker_2cat, // Gen for Barry, Tamsin for BerryIce
-      acc2 = pair[1] === "barry" ? speaker_1cat : speaker_2cat, // Gen for Barry, Tamsin for BerryIce
+      acc1 = (pair[0] === "barry" || pair[0] === "jan" || pair[0] === "gavin"|| pair[0] === "bedOak" || pair[0] === "bedLion") ? speaker_1cat : speaker_2cat, // Gen for Barry, Tamsin for BerryIce
+      acc2 = (pair[1] === "barry" || pair[1] === "jan" || pair[1] === "gavin"|| pair[1] === "bedOak" || pair[1] === "bedLion") ? speaker_1cat : speaker_2cat, // Gen for Barry, Tamsin for BerryIce
       ]
   }
 
