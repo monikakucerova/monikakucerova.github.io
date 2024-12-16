@@ -1,0 +1,19 @@
+berryIce_s5 (orig; 5800, 5)
+F1 546.4693355489024
+F2 2679.719053161814
+
+barry2_s5 (orig; 5000, 5; F1 as F2, F2 as F3 - found additional lower formant)
+F1 973.9406384654778
+F2 2213.7354999502027
+------------
+0.154 + (0.284-0.154)/4 = 0.1865
+0.284 - (0.284-0.154)/4 = 0.2515
+
+trvani 0.284-0.154
+
+------------
+5800, 5 for creating fromGrid2
+
+final continuum sounds: manipulace na konci 1. tretiny a na konci 2. formanty 5, ceiling 5500. 
+
+dur rucne upravena na cca 18 (coz je vlastne spatne, melo byt 16.5). Nemenim zatim, bude potreba si pohrat s formantgridem, tech 18 zni lip nez 16.5 co jsem zatim udelala.
