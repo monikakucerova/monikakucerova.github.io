@@ -1,6 +1,0 @@
-saving files
-barry2_s1	 with duration 	0.588	 warped by	0.920 to match target duration of	0.540
-barry_s1	 with duration 	0.507	 warped by	1.066 to match target duration of	0.540
-berryHen2_s1	 with duration 	0.549	 warped by	0.984 to match target duration of	0.540
-berryHen_s1	 with duration 	0.518	 warped by	1.043 to match target duration of	0.540
-DONE!
