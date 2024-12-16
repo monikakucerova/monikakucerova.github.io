@@ -271,9 +271,12 @@ var get_id = {
         "snd/words/" + word2 + "2_" + second_speaker + ".wav"
       ];
     }).flat().filter(path => path !== null);
+
+    // Also preload button imgs
+    var button_images = ["img/meg1.png", "img/meg2.png", "img/megGreen.png", "img/arrow.png"];
     
     // Combine imgs, audio, vids for preloading
-    var all_resources = [...new Set([...obs_images, ...video_files, ...audio_files])];
+    var all_resources = [...new Set([...obs_images, ...video_files, ...audio_files, ...button_images])];
 
     // Create preloading trial with
     var preload_trial = createPreloadTrial(all_resources);
@@ -486,6 +489,7 @@ function video_obs_trial(tStart, tEnd, vid, cond, first_speaker, second_speaker)
     on_load: function() {
       
       // Add an event listener to stop the video when "k" is pressed
+      // Rewind bakc by 10 s o "j" press, forward on "l" press
       document.addEventListener('keydown', function(event) {
         var videoElement = document.querySelector('video');
         if (videoElement) {
@@ -517,13 +521,13 @@ function video_obs_trial(tStart, tEnd, vid, cond, first_speaker, second_speaker)
 
 // Function to check if a prereq value meets the requirement for showing soundsel pairs from pevious vids
 function prereqMet(prereq, seq_parts, progress) {
-  if (!prereq) return true; // for no-prereq pairs requirement is always met
-  const prereqParts = prereq.split('_'); // if there is more than one prereq
+  if (!prereq) return true; // For no-prereq pairs requirement is always met
+  const prereqParts = prereq.split('_'); // If there is more than one prereq, split along the underscore
 
   // Check each part of the prereq
   for (let part of prereqParts) {
     const prereqIndex = seq_parts.indexOf(part);
-    if (prereqIndex === -1 || prereqIndex >= progress) {
+    if (prereqIndex === -1 || prereqIndex >= progress) { // If the index of the prereq video is larger than progress, do not incldue soundsels with that prereq.
       return false; // Prereq not met
     }
   }
@@ -545,28 +549,17 @@ function organizeSoundSelTrials(soundSels, extracted_seq, seq_parts, progress) {
     famTrial = filteredSoundSels.splice(famTrialIndex, 1)[0]; // Remove fam trial from array
   }
 
-  /*
-  // Shuffle trials
-  filteredSoundSels = jsPsych.randomization.shuffle(filteredSoundSels);
-  console.log("filtered sound sels", filteredSoundSels)
-
-  // Place the fam trial at the beginning 
-  if (famTrial) {
-    filteredSoundSels.unshift(famTrial);
-  }
-
-  */
-
+  // Shuffle filtered soundsels
   let reordered = false;
-  while (!reordered) {
-    // console.log("in while loop")
+  while (!reordered) { 
+
     filteredSoundSels = jsPsych.randomization.shuffle(filteredSoundSels);
     reordered = true;
 
+    // Try to avoid adjacent pairs with identical parts
     for (let i = 0; i < filteredSoundSels.length - 1; i++) {
       const [partA1, partA2] = filteredSoundSels[i].pair.split("-");
       const [partB1, partB2] = filteredSoundSels[i + 1].pair.split("-");
-      // console.log(partA1, partA2, partB1, partB2)
 
       // Check if consecutive pairs have any matching parts
       if (partA1 === partB1 || partA1 === partB2 || partA2 === partB1 || partA2 === partB2) {
@@ -598,6 +591,7 @@ function organizeSoundSelTrials(soundSels, extracted_seq, seq_parts, progress) {
   return filteredSoundSels;
 }
 
+// SHuffle carriers
 // Initialize the last selected carrier globally to keep track of it across trials
 let lastSelectedCarrier = null;
 let carrierPool = []; // This will hold the shuffled carriers
@@ -605,9 +599,9 @@ let carrierPool = []; // This will hold the shuffled carriers
 // select random carrier for soundsel pair item
 function selectRandomCarrierPhrase(word, status, progress) {
 
-  if (status == "mp" && progress > 1) { // for mps, use only carriers usable with any word
+  if (status == "mp" && progress > 1) { // For mps, use only carriers usable with any word
 
-    var carriersByIndefArt = {
+    var carriersByIndefArt = { // Define carriers to be used depending on type of article required by word
       pl: [ "the_word_is", "i_m_going_to_say"],
       y: [ "the_word_is", "i_m_going_to_say"],
       y_an: [ "the_word_is", "i_m_going_to_say"],
@@ -657,16 +651,16 @@ let lastPlayedSound = null; // Track the last played sound
 let clickData = []; // Array to store click data
 
 ///////////////////////////////////////////////////////////////////////////////////////
-// SOUND SELECTION TRIAL                                                      //
-// SOUND SELECTION TRIAL                                                      //
-// SOUND SELECTION TRIAL                                                      //
+// SOUND SELECTION TRIAL                                                             //
+// SOUND SELECTION TRIAL                                                             //
+// SOUND SELECTION TRIAL                                                             //
 ///////////////////////////////////////////////////////////////////////////////////////
 
 function make_sound_selection_trial(soundSel, first_speaker, second_speaker, progress, cond) {
   
-  // on each trial assign acc1 and acc2 with 50% probability as first_speaker or second_speaker
+  // On each trial assign acc1 with 50% probability as first_speaker or second_speaker
+  // Make acc2 the other speaker
   var acc1 = Math.random() < 0.5 ? first_speaker : second_speaker;
-
   var acc2 = acc1 == second_speaker ? first_speaker : second_speaker;
 
   // split value from soundsel to get the two words
@@ -675,18 +669,15 @@ function make_sound_selection_trial(soundSel, first_speaker, second_speaker, pro
   var target_img;
   var target_base_name;
 
-  // if the status of the pair is mp, choose randomly (50%) the image
-  // if the status is not mp, make the image the first element (minimal pair word)
+  // If the status of the pair is mp, choose randomly (50%) the image
+  // If the status is not mp, make the image the first element (minimal pair/target word)
   if (soundSel.status === "mp") {
     target_base_name = Math.random() < 0.5 ? pair[0] : pair[1];
-    // target_img = "img/" + target_base_name + ".png";
   } else {
     target_base_name = pair[0];
-    // target_img = "img/" + target_base_name + ".png";
   }
 
-  // if this is the last training video and the condition is bi,
-  // find out the 2cat speaker and 1cat speaker
+  // If the condition is bi, find the 2cat speaker and 1cat speaker
   if (cond === "bi") {
     if (first_speaker === "s1" || first_speaker === "s2") {
       var speaker_2cat = first_speaker
@@ -702,21 +693,21 @@ function make_sound_selection_trial(soundSel, first_speaker, second_speaker, pro
     }
   }
 
-  // if heard is empty, last two training videos and conds is bi and the pair is mp
+  // If heard is empty, last two training videos and conds is bi and the pair is mp
   // decide randomly (50%) between these two options of accent combos
   if (soundSel.heard == "random" && progress > 1 && cond === "bi" && soundSel.status == "mp") {
     console.log("MP status, empty heard, prog > 1, cond bi. Looking to assign speaker_2cat or speaker_1cat")
 
       Math.random() < 0.5 ? 
-      // Assign sounds for "heard = 100" case for barry
+      // Assign sounds for "heard = 100" case for (near)mps
       [
-      acc1 = (pair[0] === "barry" || pair[0] === "jan" || pair[0] === "gavin" || pair[0] === "bedOak" || pair[0] === "bedLion") ? speaker_2cat : speaker_1cat, // Tamsin for Barry, Gen for BerryIce
-      acc2 = (pair[1] === "barry" || pair[1] === "jan" || pair[1] === "gavin" || pair[1] === "bedOak" || pair[1] === "bedLion") ? speaker_2cat : speaker_1cat, // Gen for BerryIce, Tamsin for Barry
+      acc1 = (pair[0] === "barry" || pair[0] === "jan" || pair[0] === "gavin" || pair[0] === "bedOak" || pair[0] === "bedLion") ? speaker_2cat : speaker_1cat, // 2cat for Barry, 1cat for BerryIce
+      acc2 = (pair[1] === "barry" || pair[1] === "jan" || pair[1] === "gavin" || pair[1] === "bedOak" || pair[1] === "bedLion") ? speaker_2cat : speaker_1cat, // 1cat for BerryIce, 2cat for Barry
       ]
       :
       [
-      acc1 = (pair[0] === "barry" || pair[0] === "jan" || pair[0] === "gavin"|| pair[0] === "bedOak" || pair[0] === "bedLion") ? speaker_1cat : speaker_2cat, // Gen for Barry, Tamsin for BerryIce
-      acc2 = (pair[1] === "barry" || pair[1] === "jan" || pair[1] === "gavin"|| pair[1] === "bedOak" || pair[1] === "bedLion") ? speaker_1cat : speaker_2cat, // Gen for Barry, Tamsin for BerryIce
+      acc1 = (pair[0] === "barry" || pair[0] === "jan" || pair[0] === "gavin"|| pair[0] === "bedOak" || pair[0] === "bedLion") ? speaker_1cat : speaker_2cat, // 1cat for Barry, 2cat for BerryIce
+      acc2 = (pair[1] === "barry" || pair[1] === "jan" || pair[1] === "gavin"|| pair[1] === "bedOak" || pair[1] === "bedLion") ? speaker_1cat : speaker_2cat, // 1cat for Barry, 2cat for BerryIce
       ]
   }
 
@@ -729,14 +720,14 @@ function make_sound_selection_trial(soundSel, first_speaker, second_speaker, pro
       target_base_name = "berryIce";
 
       // Assign sounds for "heard = 100" case for barry
-      acc1 = pair[0] === "barry" ? "s5" : "s6"; // Tamsin for Barry, Gen for BerryIce
-      acc2 = pair[1] === "barry" ? "s5" : "s6"; // Gen for BerryIce, Tamsin for Barry
+      acc1 = pair[0] === "barry" ? "s5" : "s6"; // 2cat for Barry, 1cat for BerryIce
+      acc2 = pair[1] === "barry" ? "s5" : "s6"; // 1cat for BerryIce, 2cat for Barry
     } else if (pair.includes("brad")) {
       target_base_name = "bread";
 
       // Assign sounds for "heard = 100" case for brad
-      acc1 = pair[0] === "brad" ? "s5" : "s6"; // [braed] from Tamsin, [bred] from Gen
-      acc2 = pair[1] === "brad" ? "s5" : "s6"; // [bred] from Gen, [braed] from Tamsin
+      acc1 = pair[0] === "brad" ? "s5" : "s6"; // [braed] from 2cat, [bred] from 1cat
+      acc2 = pair[1] === "brad" ? "s5" : "s6"; // [bred] from 1cat, [braed] from 2cat
     }
   } else if (soundSel.heard === 50) { // Testing if they remember voice
     console.log("heard 50 triggered")
@@ -745,15 +736,15 @@ function make_sound_selection_trial(soundSel, first_speaker, second_speaker, pro
       target_base_name = "barry"; // tady potrebuju barry aby to nebylo actual 50
 
       // Assign reversed sounds for "heard = 50" case for barry
-      acc1 = pair[0] === "barry" ? "s6" : "s5"; // Gen for Barry, Tamsin for BerryIce
-      acc2 = pair[1] === "barry" ? "s6" : "s5"; // Gen for Barry, Tamsin for BerryIce
+      acc1 = pair[0] === "barry" ? "s6" : "s5"; // 1cat for Barry, 2cat for BerryIce
+      acc2 = pair[1] === "barry" ? "s6" : "s5"; // 1cat for Barry, 2cat for BerryIce
 
     } else if (pair.includes("brad")) {
       target_base_name = "brad";
 
       // Assign reversed sounds for "heard = 50" case for brad
-      acc1 = pair[0] === "brad" ? "s6" : "s5"; // [bred] from Gen, [bred] from Tamsin
-      acc2 = pair[1] === "brad" ? "s6" : "s5"; // [bred] from Gen, [bred] from Tamsin
+      acc1 = pair[0] === "brad" ? "s6" : "s5"; // [bred] from 1cat, [bred] from 2cat
+      acc2 = pair[1] === "brad" ? "s6" : "s5"; // [bred] from 1cat, [bred] from 2cat
     }
   }
 
@@ -762,8 +753,10 @@ function make_sound_selection_trial(soundSel, first_speaker, second_speaker, pro
   var carrierPhrase1, carrierPhrase2;
   var sound_file_1, sound_file_2;
 
+  // Select new carrier phrases on each sound button click
+  // Define sound paths
   function updateSoundFiles() {
-    // Select new carrier phrases
+    
     carrierPhrase1 = selectRandomCarrierPhrase(pair[0], soundSel.status, progress);
     carrierPhrase2 = selectRandomCarrierPhrase(pair[1], soundSel.status, progress); 
 
@@ -780,7 +773,7 @@ function make_sound_selection_trial(soundSel, first_speaker, second_speaker, pro
       ? "snd/output_carrierPlusWord/" + carrierPhrase2 + "_" + pair[1] + (Math.random() < 0.5 ? "2" : "") + "_" + acc2 + ".wav"
       : "snd/words/" + pair[1] + (Math.random() < 0.5 ? "2" : "") + "_" + acc2 + ".wav";
 
-    // Ensure that the sound without carrier does not repeat
+    // Ensure that the sound without carrier does not repeat // FIXME not sure about this- shoud be if lastPlayedSound includes carrierPhrase 1 || 2
     if (!useCarrier1 && sound_file_1 === lastPlayedSound) {
       // Swap to a carrier version if the basic sound would repeat
       "snd/output_carrierPlusWord/" + carrierPhrase1 + "_" + pair[0] + (Math.random() < 0.5 ? "2" : "") + "_" + acc1 + ".wav";
@@ -793,25 +786,23 @@ function make_sound_selection_trial(soundSel, first_speaker, second_speaker, pro
 
   updateSoundFiles();  // Initial sound file update
 
-  var word_sound_file_1 = "snd/words/" + pair[0] + (Math.random() < 0.5 ? "2": "") + "_" + acc1 + ".wav"; // bare word for the feedback
-  var word_sound_file_2 = "snd/words/" + pair[1] + (Math.random() < 0.5 ? "2": "") + "_" + acc2 + ".wav"; // bare word for the feedback
+  var word_sound_file_1 = "snd/words/" + pair[0] + (Math.random() < 0.5 ? "2": "") + "_" + acc1 + ".wav"; // Bare word for the feedback
+  var word_sound_file_2 = "snd/words/" + pair[1] + (Math.random() < 0.5 ? "2": "") + "_" + acc2 + ".wav"; // Bare word for the feedback
 
-  var correct_sound = (target_base_name === pair[0]) ? word_sound_file_1 : word_sound_file_2; // decide which bare word to play at feedback based on comparison
+  var correct_sound = (target_base_name === pair[0]) ? word_sound_file_1 : word_sound_file_2; // Decide which bare word to play at feedback
 
-  // set button imgs
+  // Set button imgs
   var meg1_img = "img/meg1.png";
   var meg2_img = "img/meg2.png";
   var megGreen_img = "img/megGreen.png";
   var arrow_img = "img/arrow.png";
 
-  // var lastPlayedSound = null;
-
   // Randomize button positions
   var rand_order_sound = Math.random() < 0.5;
 
-  // define feedback trial
+  // Define feedback trial
   var feedback_trial = function(correct) {
-    var feedback_img = correct ? "img/tick.png" : "img/cross.png"; // feedback imgs
+    var feedback_img = correct ? "img/tick.png" : "img/cross.png"; // Feedback imgs
     var feedback_sound;
     if (correct) {
       var positive_feedback_sounds = ["feedback/well", "feedback/great", "feedback/perfect"];
@@ -834,15 +825,15 @@ function make_sound_selection_trial(soundSel, first_speaker, second_speaker, pro
       data: { block: "sndSel_feedback", img: target_base_name, correct: correct },
       
       on_load: function() { 
-        // name buttons
+        // Name buttons
         var buttons = document.querySelectorAll('.jspsych-btn');
-        var soundButton = buttons[0]; // the firt button in the feedback is always the sound one
-        var arrowButton = buttons[1]; // second button always arrow
+        var soundButton = buttons[0]; // The firt button in the feedback is always the sound one
+        var arrowButton = buttons[1]; // Second button always arrow
 
-        // hide arrow initially
+        // Hide arrow initially
         arrowButton.style.visibility = 'hidden';
 
-        // play correct sound at sound button click
+        // Play correct sound at sound button click
         soundButton.addEventListener('click', function(event) {
           event.stopPropagation();
           var audio = new Audio(correct_sound);
@@ -850,24 +841,24 @@ function make_sound_selection_trial(soundSel, first_speaker, second_speaker, pro
           arrowButton.style.visibility = 'visible';
         });
 
-        // finish trial at arrow button click
+        // End trial at arrow button click
         arrowButton.addEventListener('click', function(event) {
           event.stopPropagation();
-          jsPsych.finishTrial(); // End trial on arrow button click
+          jsPsych.finishTrial(); 
         });
       },
 
       trial_duration: null, // Duration is determined by user interaction
 
       on_start: function() {
-        var audio = new Audio(feedback_sound); //feedback sound plays at feedback trial onset
+        var audio = new Audio(feedback_sound); // Feedback sound plays at feedback trial onset
         audio.play();
         setTimeout(function() {
           var feedbackImage = document.querySelector('img[style*="top: 10%; right: 10%;"]');
           if (feedbackImage) {
             feedbackImage.style.display = 'none';
           }
-        }, 1000); // feedback image is visible for 1 s
+        }, 1000); // Feedback image is visible for 1 s
       },
 
       on_finish: function(data) {
@@ -877,12 +868,16 @@ function make_sound_selection_trial(soundSel, first_speaker, second_speaker, pro
     };
   };
 
+// SOUND SELECTION TRIAL
+// SOUND SELECTION TRIAL
+// SOUND SELECTION TRIAL
+
+// Shuffle grey and white buttons randomly for each trial
   var firstButtonImage = Math.random() < 0.5 ? meg1_img : meg2_img;
   var secondButtonImage = firstButtonImage === meg1_img ? meg2_img : meg1_img;
 
   var playedSounds = [];
 
-  // sound selection trial
   return {
     timeline: [
       {
@@ -899,23 +894,24 @@ function make_sound_selection_trial(soundSel, first_speaker, second_speaker, pro
         data: { block: "sndSel", 
           img: target_base_name, 
           pair: pair, 
-          sound_files: [sound_file_1, sound_file_2],
-          // playedSounds: playedSounds 
-        }, // snd files get saved incl. carriers
+          sound_files: [sound_file_1, sound_file_2], // snd files get saved incl. carriers
+        },
         
         on_load: function() {
           var buttons = document.querySelectorAll('.jspsych-btn');
-          var arrowButton = buttons[2]; // Arrow button
+          var arrowButton = buttons[2]; // Name arrow button
+
+          // Keep track of clicks
           var soundPlayed = false;
 
           var sound1Clicked = false;
           var sound2Clicked = false;
 
+          // Hide arrow button initially
           arrowButton.style.visibility = 'hidden';
-          // arrowButton.disabled = true; // Disable arrow button initially
 
           if (rand_order_sound) {
-            buttons[0].addEventListener('click', function(event) {
+            buttons[0].addEventListener('click', function(event) { // Button 0 is always sound file 1 but it changes position and color
               event.stopPropagation();
               updateSoundFiles(); // Select new carrier phrases and update sound files
               var audio = new Audio(sound_file_1);
@@ -986,8 +982,6 @@ function make_sound_selection_trial(soundSel, first_speaker, second_speaker, pro
               sound2Clicked = true; 
 
               soundPlayed = true;
-              // arrowButton.disabled = false;
-              // arrowButton.style.visibility = 'visible';
 
               console.log('Played Sound:', sound_file_2);
               buttons[0].style.backgroundColor = 'yellow';
@@ -1016,8 +1010,6 @@ function make_sound_selection_trial(soundSel, first_speaker, second_speaker, pro
               sound1Clicked = true; 
 
               soundPlayed = true;
-              // arrowButton.disabled = false;
-              // arrowButton.style.visibility = 'visible';
 
               if (sound1Clicked && sound2Clicked) {
                 arrowButton.disabled = false;
@@ -1091,9 +1083,9 @@ function make_sound_selection_trial(soundSel, first_speaker, second_speaker, pro
 }
 
 /******************************************************************************************** */
-// boundary familiarisation
-// boundary familiarisation
-// boundary familiarisation
+// BOUNDARY FAMILIARIZATION
+// BOUNDARY FAMILIARIZATION
+// BOUNDARY FAMILIARIZATION
 /******************************************************************************************** */
 
 var berry_on_left = Math.random() < 0.5;
