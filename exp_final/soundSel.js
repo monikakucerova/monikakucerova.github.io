@@ -198,21 +198,21 @@ var soundSel = [
   {
     "vid": "mouse",
     "pair": "cakeMouse-cheese",
-    "heard": "randomTest",
+    "heard": "random",
     "status": "fam",
     "prereq": ""
   },
   {
     "vid": "mouse",
     "pair": "carrot-cookies",
-    "heard": "randomTest",
+    "heard": "random",
     "status": "train",
     "prereq": ""
   },
   {
     "vid": "mouse",
     "pair": "hatMouse-catMouse",
-    "heard": "randomTest",
+    "heard": "random",
     "status": "train",
     "prereq": ""
   },
@@ -233,7 +233,7 @@ var soundSel = [
   {
     "vid": "mouse",
     "pair": "jan-jen",
-    "heard": "randomTest",
+    "heard": "random",
     "status": "mp",
     "prereq": ""
   },
