@@ -30,7 +30,7 @@ var jsPsych = initJsPsych({
     jsPsych.endExperiment(csvDisplay);
     */
 
-    var customMessage = '<p style="font-size: 20px; text-align: center;">Hotovo! Moc Vam dekujeme za dokonceni teto casti experimentu. Muzete zavrit tohle okno.</p>';
+    var customMessage = '<p style="font-size: 20px; text-align: center;">Hotovo!</p>';
     jsPsych.endExperiment(customMessage);
 
   }
