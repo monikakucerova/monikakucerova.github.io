@@ -17,18 +17,17 @@ var jsPsych = initJsPsych({
     var participant_id = jsPsych.data.get().values()[0].participant_id; // get ppt id
     var participant_seq = seq.find(s => s.id === participant_id); // get id's seq
     
-    /* For saving csv locally
     // Define filename ad ID_seq_startTime
     var filename = `${participant_id}_${participant_seq.progress}_${formattedStartTime}.csv`;
 
     // Save the data as CSV
-    jsPsych.data.get().localSave('csv', filename);
+    // jsPsych.data.get().localSave('csv', filename);
 
     // Display the results in a textarea
     var allData = jsPsych.data.get().csv();
     var csvDisplay = '<textarea rows="20" cols="80">' + allData + '</textarea>';
     jsPsych.endExperiment(csvDisplay);
-    */
+
 
     var customMessage = '<p style="font-size: 20px; text-align: center;">Hotovo!</p>';
     jsPsych.endExperiment(customMessage);
@@ -1048,9 +1047,9 @@ function make_sound_selection_trial(soundSel, first_speaker, second_speaker, pro
           // Determine which side (left or right) the clicked image was on
           var clicked_side = null;
           if (rand_order_sound) {
-            clicked_side = (lastPlayedSound === sound_file_1) ? "left" : "right";
+            clicked_side = (lastPlayedSound === sound_file_1) ? 'left' : 'right';
           } else {
-            clicked_side = (lastPlayedSound === sound_file_2) ? "left" : "right";
+            clicked_side = (lastPlayedSound === sound_file_2) ? 'left' : 'right';
           }
 
           data.selected_sound = lastPlayedSound; // Store the last played sound in the trial data
@@ -1092,26 +1091,59 @@ var berry_on_left = Math.random() < 0.5;
 var currentColorIndex = 0; // Persistent color index
 
 // Define an array of colors
-var colors = ["#ffdfba", "#ffffba", "#bae1ff", "#ffd4e5", "#eecbff", "#feffa3", "	#dbdcff", "#f2d7fb", "#d4fffc"];
+var colors = ['#ffdfba', '#ffffba', '#bae1ff', '#ffd4e5', '#eecbff', '#feffa3', '#dbdcff', '#f2d7fb', '#d4fffc'];
 
+// Function for changing backg color
 function changeBackgroundColor() {
   document.body.style.backgroundColor = colors[currentColorIndex];
   currentColorIndex = (currentColorIndex + 1) % colors.length;
 }
 
-function createBoundaryFam(sound, cond, first_speaker, second_speaker, sound_category, speaker) {
-  // var speaker = "s1"
-  var { speaker } = find_boundary_speaker(cond,first_speaker, second_speaker);
-  var sound_directory = sound_category + "/" + speaker + "/continuum_sounds";
+// Find boudnary speaker based on cond
+function find_boundary_speaker(cond, first_speaker,second_speaker) {
+  let speaker;
 
-  var berry_image = "img/" + sound_category + "Hen.png";
-  var barry_image = "img/barry.png";
+  console.log('First speaker:', first_speaker);
+  console.log('Second speaker:', second_speaker);
+  console.log('cond:', cond);
+
+  if (cond == 'test') {
+    speaker = 's5'
   
-  var meg_image = "img/meg.png";
-  var arrow_image = "img/arrow.png";
-  var sound_file = "snd/" + sound_directory + "/continuum_step_" + (sound < 10 ? 0 : "") + sound + ".wav";
+  } else if (cond == 'uni2') {
+    speaker = first_speaker 
+  
+  } else if (cond == 'uni1') { // UNI1 always get s4, no s3.
+    speaker = 's4' 
+  
+  } else if (cond == 'bi') {
 
-  // Create button choices based on randomization
+    if (first_speaker == 's1' || first_speaker == 's2') {
+      speaker = first_speaker
+
+    } else if (second_speaker == 's1' || second_speaker == 's2') {
+      speaker = second_speaker};
+  }
+  
+  console.log('found boundary speaker:', speaker);
+  
+  return {speaker};
+  
+};
+
+function createBoundaryFam(sound, cond, first_speaker, second_speaker, sound_category, speaker) {
+
+  var { speaker } = find_boundary_speaker(cond,first_speaker, second_speaker);
+  var sound_directory = sound_category + '/' + speaker + '/continuum_sounds';
+
+  var berry_image = 'img/' + sound_category + 'Hen.png';
+  var barry_image = 'img/barry.png';
+  
+  var meg_image = 'img/meg.png';
+  var arrow_image = 'img/arrow.png';
+  var sound_file = 'snd/' + sound_directory + '/continuum_step_' + (sound < 10 ? 0 : '') + sound + '.wav';
+
+  // Create button choices 
   choices = berry_on_left
   ? [
     '<img src="' + berry_image + '" id="berry-button" width="150px" style="border: 2px solid black; position: absolute; right: 20%;">',
@@ -1128,11 +1160,12 @@ function createBoundaryFam(sound, cond, first_speaker, second_speaker, sound_cat
           {
             type: jsPsychHtmlButtonResponse,
             stimulus: '<img src="' + meg_image + '" id="play-sound" width="100px" style="border: 2px solid black; padding: 10px;">',
-        choices: choices,
-        button_html: '<button class="jspsych-btn no-border-button" style="border:none; padding:0; background:none;">%choice%</button>', // Removing any borders and padding
-        data: { sound: sound_file,
-          speaker: speaker
-         },
+            choices: choices,
+            button_html: '<button class="jspsych-btn no-border-button" style="border:none; padding:0; background:none;">%choice%</button>', // Removing any borders and padding
+            data: { 
+              sound: sound_file,
+              speaker: speaker
+              },
          
             on_start: function() {
               changeBackgroundColor();
@@ -1143,11 +1176,14 @@ function createBoundaryFam(sound, cond, first_speaker, second_speaker, sound_cat
 
               var buttons = document.querySelectorAll('.jspsych-btn');
               var arrowButton = buttons[2]; // Selecting the arrow button
+
               buttons[2].disabled = true; // Disable the arrow button initially
+
               var playSoundButton = document.getElementById('play-sound');
               var berryButton = document.getElementById('berry-button');
               var barryButton = document.getElementById('barry-button');
               var pictureButtons = [berryButton, barryButton];
+
               var audio = new Audio(sound_file);
               audio.play();
     
@@ -1171,7 +1207,7 @@ function createBoundaryFam(sound, cond, first_speaker, second_speaker, sound_cat
                 event.stopPropagation();
                 berryButton.style.backgroundColor = 'yellow';
                 barryButton.style.backgroundColor = '';
-                arrowButton.disabled = false; // Enable the arrow button when a berry is clicked
+                arrowButton.disabled = false; // Enable the arrow button when berry is clicked
                 berryButton.dataset.clicked = true;
                 barryButton.dataset.clicked = false;
                 recordReactionTime();
@@ -1232,7 +1268,7 @@ function createBoundaryFam(sound, cond, first_speaker, second_speaker, sound_cat
               if (last_trial_data.correct === null) {
                 return ''; // Return an empty string for a blank screen
               }
-              var feedback_img = last_trial_data.correct ? "img/tick.png" : "img/cross.png";
+              var feedback_img = last_trial_data.correct ? 'img/tick.png' : 'img/cross.png';
               return '<img src="' + feedback_img + '" width="100px" style="border:none;">';
             },
             choices: [],
@@ -1246,14 +1282,14 @@ function createBoundaryFam(sound, cond, first_speaker, second_speaker, sound_cat
             on_start: function() {
               var last_trial_data = jsPsych.data.get().last(1).values()[0];
               var speaker = last_trial_data.speaker;  // Retrieve speaker from last trial's data
-              var feedback_sound = "";
+              var feedback_sound = '';
               
               if (last_trial_data.correct) {
-                var positive_feedback_sounds = ["feedback/well_", "feedback/great_", "feedback/perfect_"];
-                feedback_sound = "snd/" + positive_feedback_sounds[Math.floor(Math.random() * positive_feedback_sounds.length)] + speaker + ".wav";
+                var positive_feedback_sounds = ['feedback/well_', 'feedback/great_', 'feedback/perfect_'];
+                feedback_sound = 'snd/' + positive_feedback_sounds[Math.floor(Math.random() * positive_feedback_sounds.length)] + speaker + '.wav';
               } else {
-                var negative_feedback_sounds = ["feedback/no_", "feedback/not_"];
-                feedback_sound = "snd/" + negative_feedback_sounds[Math.floor(Math.random() * negative_feedback_sounds.length)] + speaker + ".wav";
+                var negative_feedback_sounds = ['feedback/no_', 'feedback/not_'];
+                feedback_sound = 'snd/'+ negative_feedback_sounds[Math.floor(Math.random() * negative_feedback_sounds.length)] + speaker + '.wav';
               }
           
               var audio = new Audio(feedback_sound);
@@ -1275,63 +1311,25 @@ function createBoundaryFam(sound, cond, first_speaker, second_speaker, sound_cat
 // BOUNDARY TEST
 // =============================================================
 
-function find_boundary_speaker(cond, first_speaker,second_speaker) {
-  let speaker;
-
-  console.log("First speaker:", first_speaker);
-console.log("Second speaker:", second_speaker);
-console.log("cond:", cond);
-
-  if (cond == "test") {
-  speaker = "s5"}
-  else if (cond == "uni2") {
-  speaker = first_speaker }
-  else if (cond == "uni1") {
-  speaker = "s4" } 
-  else if (cond == "bi") {
-    if (first_speaker == "s1" || first_speaker == "s2") {
-    speaker = first_speaker}
-    else if (second_speaker == "s1" || second_speaker == "s2") {
-    speaker = second_speaker};
-  }
-  
-  console.log("found boundary speaker:", speaker);
-  
-  return {speaker};
-  
-};
-
 // Initialize variables for test trials
-var current_sound = Math.random() < 0.5 ? 1 : 51; // starting point 0 or 50
-var reversal_thresholds = [1, 51]; // when the answer is consistent for the max number of highest steps
-var increment = 10; // initial increment size
-var min_increment = 1; // minimum increment size
+var current_sound = Math.random() < 0.5 ? 1 : 51; // Starting point 0 or 50
+var reversal_thresholds = [1, 51]; // When the answer is consistent for the max number of highest steps
+var increment = 10; // Initial increment size
+var min_increment = 1; // Minimum increment size
 var trial_counter = 0;
 var max_trials = 20; // IF answer "E" or "A" five times from the first trial, then max_trials = 5 before reversal
-var last_button = null; // track the last button clicked
-var reversal_counter = 0; // track the number of reversals
-var max_reversals = 5; // maximum number of reversals before termination
+var last_button = null; // Track the last button clicked
+var reversal_counter = 0; // Track the number of reversals
+var max_reversals = 5; // Maximum number of reversals before termination
 
-var previous_non_int_sound = current_sound; // To track the last non-"int" sound
+// To track the last non-intervening sound
+var previous_non_int_sound = current_sound;
 
 // Randomize the position of Berry and Barry buttons
 var berry_on_left = Math.random() < 0.5;
 
+// Get trial start time
 var trial_start_time;
-
-document.addEventListener('keydown', function(event) {
-  if (event.key === 'q') {
-    console.log('Q key pressed. Setting reversal counter to 5 and ending experiment.');
-    
-    // Set the global reversal counter to 5
-    reversal_counter = 5;
-    
-    // Check if max reversals are reached and end experiment if true
-    if (reversal_counter >= max_reversals) {
-      jsPsych.endExperiment("Max reversals reached via Q key. The experiment is now complete.");
-    }
-  }
-});
 
 function createBoundaryTrial(cond, first_speaker, second_speaker, sound_category) {
   const { speaker } = find_boundary_speaker(cond,first_speaker, second_speaker);
